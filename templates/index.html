@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="Annotator">
+    <meta name="author" content="tentangdata">
+    <!-- <link rel="icon" href="../../favicon.ico"> -->
+
+    <title>Annotator</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <!-- Begin page content -->
+    <div class="container text-center">
+      <div class="page-header">
+        <h1>Annotator</h1>
+      </div>
+      {% with messages = get_flashed_messages(category_filter=["info"]) %}
+      {% if messages %}
+      <div class="alert alert-success" role="alert">
+        {% for msg in messages %}
+        {{ msg }}
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      <p class="lead">
+        {{ data.text }}
+      </p>
+      <form id="form" role="form" method="post" action="">
+        <input type="hidden" name="id" value="{{ data.id }}">
+        <div class="form-group">
+          <label class="radio-inline">
+            <input type="radio" name="spam" id="spam1" value="0" autofocus="true"> Not spam
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="spam" id="spam2" value="1"> Spam
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">
+          Disclaimer: <a href="https://github.com/slang800/instagram-screen-scrape">https://github.com/slang800/instagram-screen-scrape</a>
+        </p>
+      </div>
+    </footer>
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+  </body>
+</html>
