@@ -13,8 +13,6 @@
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -27,7 +25,7 @@
   <body>
 
     <!-- Begin page content -->
-    <div class="container text-center">
+    <div class="container">
       <div class="page-header">
         <h1>Annotator</h1>
       </div>
@@ -40,19 +38,32 @@
       </div>
       {% endif %}
       {% endwith %}
-      <p class="lead">
-        {{ data.text }}
-      </p>
       <form id="form" role="form" method="post" action="">
-        <input type="hidden" name="id" value="{{ data.id }}">
-        <div class="form-group">
-          <label class="radio-inline">
-            <input type="radio" name="spam" id="spam1" value="0" autofocus="true"> Not spam
-          </label>
-          <label class="radio-inline">
-            <input type="radio" name="spam" id="spam2" value="1"> Spam
-          </label>
-        </div>
+        <input type="hidden" name="filename" value="{{ filename }}">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Comment</th>
+              <th>Spam?</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for comment in data %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="col-xs-9">{{ comment.text }}</td>
+            <input type="hidden" name="id[]" value="{{ comment.id }}">
+            <td>
+              <select name="label[]" class="form-control" autofocus="true">
+                <option value="0">Not spam</option>
+                <option value="1">Spam</option>
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
