@@ -9,8 +9,8 @@ import random
 app = Flask(__name__)
 app.secret_key = 'instagram-screen-scraper'
 
-file_in_dir = '/home/aliakbars/Dropbox/Spam/comments_new/'
-file_out_dir = '/home/aliakbars/Dropbox/Spam/label/'
+file_in_dir = 'data/comments/'
+file_out_dir = 'data/label/'
 
 def getUnannotatedComment():
     try:
