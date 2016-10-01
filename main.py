@@ -11,6 +11,7 @@ app.secret_key = 'instagram-screen-scraper'
 
 file_in_dir = 'data/comments/'
 file_out_dir = 'data/label/'
+posts_dir = 'data/posts_160923/'
 
 def getUnannotatedComment():
     try:
@@ -52,6 +53,15 @@ def getComments():
     f = random.sample(set(file_in) - set(file_out), 1)[0]
     return json.loads(open(file_in_dir + f).read())[:50], f
 
+def getPost(username, post_id):
+    with open(posts_dir + '{}.json'.format(username)) as f:
+        posts = json.loads(f.read())
+        post = filter(lambda x: x['id'] == post_id, posts)
+        if post:
+            return post[0]
+        else:
+            raise Exception("Post not found!")
+
 def writeFile(data, file_out):
     with open(file_out_dir + file_out, 'w') as f:
         f.write(data)
@@ -64,13 +74,10 @@ def index():
         writeFile(json.dumps(dict(zip(request.form.getlist('id[]'), request.form.getlist('label[]')))), request.form.get('filename'))
         return redirect('/')
     data, f = getComments()
-    return render_template('index.html', data=data, filename=f)
+    username, post_id = f.split(' ')
+    post_id = post_id[:-5]
+    post = getPost(username, post_id)
+    return render_template('index.html', data=data, post=post, filename=f)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
-    # filedir = '/home/aliakbars/Dropbox/Spam/comments_new/'
-    # for filename in os.listdir(filedir):
-    #     print filename
-    #     comments = json.loads(open(filedir + filename).read())
-    #     for comment in comments:
-    #         insertComment(comment, filename)

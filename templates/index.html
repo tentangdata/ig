@@ -38,6 +38,15 @@
       </div>
       {% endif %}
       {% endwith %}
+      <p class="lead">@{{ post.username }}</p>
+      {% if '.mp4' in post.media %}
+      <video width="640" height="640" controls>
+        <source src="{{ post.media }}" type="video/mp4">
+      </video>
+      {% else %}
+      <img src="{{ post.media }}">
+      {% endif %}
+      <p class="lead">{{ post.text }}</p>
       <form id="form" role="form" method="post" action="">
         <input type="hidden" name="filename" value="{{ filename }}">
         <table class="table table-striped">
