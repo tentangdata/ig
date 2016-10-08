@@ -93,3 +93,6 @@ ENV/
 
 # Data
 data/*
+
+# .idea files
+.idea*
