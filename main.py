@@ -2,7 +2,7 @@
 from datetime import datetime
 from flask import Flask, flash, render_template, request, redirect
 import json
-import psycopg2
+# import psycopg2
 import os
 import random
 
