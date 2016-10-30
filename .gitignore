@@ -93,3 +93,9 @@ ENV/
 
 # Data
 data/*
+
+# .idea files
+.idea*
+
+# migration files
+migrations/*

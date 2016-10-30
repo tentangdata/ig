@@ -1,0 +1,10 @@
+db_type: postgresql
+db_host: localhost
+db_port: 5432
+db_name: ig
+db_username: postgres
+db_password: postgres
+
+file_in_dir: data/comments/
+file_out_dir: data/label/
+posts_dir: data/posts_160923/
