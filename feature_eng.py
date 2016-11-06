@@ -5,6 +5,29 @@ import pandas as pd
 
 EMOJIS = pd.read_csv('data/emojis.txt', header=None)[0].tolist()
 
+SPAMMY_PATTERNS = [
+    'bbm|pin bb|line|whatsapp',
+    '(cek|check|intip|liat|kepoin) (out)? (our|my)? (ig|insta|koleksi|profil)',
+    'cekidot',
+    'dada|herba|langsing|payudara|pemutih|penggemuk|peninggi|tinggi badan',
+    'efek samping',
+    'follow',
+    'free (delivery|ongkos|ongkir|pengiriman)|gratis|murah|promo|terjangkau',
+    'garansi',
+    'impor',
+    'invit',
+    'jerawat',
+    'jual|sell',
+    'luar biasa',
+    'mampir',
+    'nyaranin',
+    'order',
+    'penghasilan',
+    'produk',
+    'suvenir|souvenir'
+    'stock|stok',
+]
+
 
 def count_numbers(texts):
     # type: (pd.Series) -> pd.Series
@@ -20,6 +43,11 @@ def count_emojis(texts):
     # type: (pd.Series) -> pd.Series
     """ Return number of emojis for each text in texts """
     return texts.apply(lambda x: sum(c in EMOJIS for c in x))
+
+def extract_emojis(texts):
+    # type: (pd.Series) -> pd.Series
+    """ Return all emojis contained in each text in texts """
+    return texts.apply(lambda x: [c for c in x if c in EMOJIS])
 
 def tokenize(texts):
     # type: (pd.Series) -> pd.Series
@@ -51,3 +79,28 @@ def _get_emoji_list(fpath_emoji_webpage='data/Full Emoji Data, v3.0.html'):
 
     emojis = sorted(set(_flatten([row.find('td', attrs={'class': 'chars'}).text.strip().split() for row in rows])))
     return emojis
+
+
+def extract_features(X):
+    X = X.copy()    # don't modify the input dataset
+
+    X['text'] = X['text'].str.strip()
+    X['tokens'] = tokenize_2(X['text'])
+    X['text_clean'] = X['tokens'].apply(' '.join)
+    X['emojis'] = extract_emojis(X['text'])
+
+    X['n_char'] = X['text'].str.len()
+    X['n_token'] = X['tokens'].apply(len)
+    X['n_capital'] = count_capitals(X['text'])
+    X['n_number'] = count_numbers(X['text'])
+    X['n_emoji'] = X['emojis'].apply(len)
+    X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+
+    for pattern in SPAMMY_PATTERNS:
+        X['has_pattern_{}'.format(pattern)] = X['text'].str.contains(pattern.replace(' +', '\s+'), case=False).astype(int)
+
+    X['%_capital'] = X['n_capital'] / X['n_char']
+    X['%_number'] = X['n_number'] / X['n_char']
+    X['%_emoji'] = X['n_emoji'] / X['n_char']
+    X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+    return X
