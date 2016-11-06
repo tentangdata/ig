@@ -7,25 +7,28 @@ EMOJIS = pd.read_csv('data/emojis.txt', header=None)[0].tolist()
 
 SPAMMY_PATTERNS = [
     'bbm|pin bb|line|whatsapp',
-    '(cek|check|intip|liat|kepoin) (out)? (our|my)? (ig|insta|koleksi|profil)',
+    '(ch?ec?k|intip|liat|kepoin)( out)?( (our|my))? (ig|insta|koleksi|profil)',
     'cekidot',
-    'dada|herba|langsing|payudara|pemutih|penggemuk|peninggi|tinggi badan',
+    'dada|herba|langsing|payudara|pemutih|penggemuk|peninggi|tahan lama|tinggi badan',
     'efek samping',
     'follow',
     'free (delivery|ongkos|ongkir|pengiriman)|gratis|murah|promo|terjangkau',
-    'garansi',
+    'garansi|kualitas',
     'impor',
     'invit',
     'jerawat',
     'jual|sell',
+    'langganan',
     'luar biasa',
     'mampir',
     'nyaranin',
     'order',
+    'password',
     'penghasilan',
     'produk',
-    'suvenir|souvenir'
+    's(o|u|ou)venir',
     'stock|stok',
+    'yu+k',
 ]
 
 
@@ -48,6 +51,18 @@ def extract_emojis(texts):
     # type: (pd.Series) -> pd.Series
     """ Return all emojis contained in each text in texts """
     return texts.apply(lambda x: [c for c in x if c in EMOJIS])
+
+def extract_spammy_pattern_features(texts):
+    # type: (pd.Series) -> pd.DataFrame
+    """ Return a DataFrame for each pattern in SPAMMY_PATTERNS,
+    denoting whether each text in text contains the pattern """
+    spammy_pattern_features = {
+        'has_pattern_{}'.format(pat): texts.str.contains(pat.replace(' +', '\s+'), case=False)
+        for pat in SPAMMY_PATTERNS
+    }
+    spammy_pattern_features = pd.DataFrame(spammy_pattern_features)
+    spammy_pattern_features.index = texts.index
+    return spammy_pattern_features
 
 def tokenize(texts):
     # type: (pd.Series) -> pd.Series
@@ -96,11 +111,10 @@ def extract_features(X):
     X['n_emoji'] = X['emojis'].apply(len)
     X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
 
-    for pattern in SPAMMY_PATTERNS:
-        X['has_pattern_{}'.format(pattern)] = X['text'].str.contains(pattern.replace(' +', '\s+'), case=False).astype(int)
-
     X['%_capital'] = X['n_capital'] / X['n_char']
     X['%_number'] = X['n_number'] / X['n_char']
     X['%_emoji'] = X['n_emoji'] / X['n_char']
     X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+
+    X = pd.concat([X, extract_spammy_pattern_features(X['text'])], axis=1)
     return X
