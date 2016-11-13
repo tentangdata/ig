@@ -142,21 +142,25 @@ def extract_features(X):
     X['text'] = X['text'].str.strip()
     X['tokens'] = tokenize_2(X['text'])
     # X['text_clean'] = X['tokens'].apply(' '.join)
-    # X['emojis'] = extract_emojis(X['text'])
+    X['emojis'] = extract_emojis(X['text'])
 
     X['n_char'] = X['text'].str.len()
     X['n_token'] = X['tokens'].apply(len)
     X['n_capital'] = count_capitals(X['text'])
     X['n_number'] = count_numbers(X['text'])
-    # X['n_emoji'] = X['emojis'].apply(len)
-    # X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+    X['n_emoji'] = X['emojis'].apply(len)
+    X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+    X['n_mention'] = X['text'].str.count('@')
 
     X['%_capital'] = X['n_capital'] / X['n_char']
     X['%_number'] = X['n_number'] / X['n_char']
-    # X['%_emoji'] = X['n_emoji'] / X['n_char']
-    # X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+    X['%_emoji'] = X['n_emoji'] / X['n_char']
+    X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
 
     X['log_char'] = X['n_char'].apply(np.log)
+
+    X['has_phone_number'] = X['text'].str.contains('(\d[ \.-]?){9}')
+    X['has_bbm_pin'] = X['text'].str.contains('[A-F0-9]{8}', case=False)
 
     # X = pd.concat([X, extract_word_embedding(X['tokens'])], axis=1)
 
