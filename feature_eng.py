@@ -92,11 +92,12 @@ def _get_w2v_mean(tokens, fpath_model='data/classification.model'):
     model = gensim.models.Word2Vec.load(fpath_model)
     return tokens.apply(lambda x: _get_mean(x, model))
 
-def extract_fasttext(texts):
+def extract_fasttext(texts, fpath_model='/tmp/model.bin'):
     # type: (pd.Series) -> pd.DataFrame
     """ Return a DataFrame for 100-dimension word embedding """
     tokens = tokenize(texts)
-    embedding = pd.DataFrame(_get_fasttext_mean(tokens).tolist(), columns=['embedding_{}'.format(i) for i in range(100)])
+    embedding = pd.DataFrame(_get_fasttext_mean(tokens, fpath_model=fpath_model).tolist(),
+                             columns=['embedding_{}'.format(i) for i in range(100)])
     embedding.index = texts.index
     return embedding
 
