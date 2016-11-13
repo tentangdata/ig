@@ -1,6 +1,8 @@
-import re
-
+import fasttext
+import gensim
+import numpy as np
 import pandas as pd
+import re
 
 
 EMOJIS = pd.read_csv('data/emojis.txt', header=None)[0].tolist()
@@ -79,6 +81,43 @@ def tokenize_2(texts):
         .apply(re_tokenize.split)\
         .apply(lambda x: [tok for tok in x if tok])    # remove empty tokens
 
+def extract_word_embedding(tokens):
+    # type: (pd.Series) -> pd.DataFrame
+    """ Return a DataFrame for 100-dimension word embedding """
+    word_embedding = pd.DataFrame(_get_w2v_mean(tokens).tolist(), columns=['embedding_{}'.format(i) for i in range(100)])
+    word_embedding.index = tokens.index
+    return word_embedding
+
+def _get_w2v_mean(tokens, fpath_model='data/classification.model'):
+    model = gensim.models.Word2Vec.load(fpath_model)
+    return tokens.apply(lambda x: _get_mean(x, model))
+
+def extract_fasttext(texts):
+    # type: (pd.Series) -> pd.DataFrame
+    """ Return a DataFrame for 100-dimension word embedding """
+    tokens = tokenize(texts)
+    embedding = pd.DataFrame(_get_fasttext_mean(tokens).tolist(), columns=['embedding_{}'.format(i) for i in range(100)])
+    embedding.index = texts.index
+    return embedding
+
+def train_model_fasttext(tokens, file_in='data/train.txt', path_out='/tmp/model'):
+    tokens.apply(' '.join).to_csv(file_in, index=False) # writing to .txt file
+    model = fasttext.skipgram(file_in, path_out)
+    return model
+
+def _get_fasttext_mean(tokens, fpath_model='/tmp/model.bin'):
+    model = fasttext.load_model(fpath_model)
+    return tokens.apply(lambda x: _get_mean(x, model))
+
+def _get_mean(tokens, model):
+    i = 0
+    total = np.zeros(100)
+    for token in tokens:
+        if token in model:
+            total += model[token]
+            i += 1
+    return total / i if i != 0 else total
+
 def _flatten(L):
     return [item for sublist in L for item in sublist]
 
@@ -101,20 +140,33 @@ def extract_features(X):
 
     X['text'] = X['text'].str.strip()
     X['tokens'] = tokenize_2(X['text'])
-    X['text_clean'] = X['tokens'].apply(' '.join)
-    X['emojis'] = extract_emojis(X['text'])
+    # X['text_clean'] = X['tokens'].apply(' '.join)
+    # X['emojis'] = extract_emojis(X['text'])
 
     X['n_char'] = X['text'].str.len()
     X['n_token'] = X['tokens'].apply(len)
     X['n_capital'] = count_capitals(X['text'])
     X['n_number'] = count_numbers(X['text'])
-    X['n_emoji'] = X['emojis'].apply(len)
-    X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+    # X['n_emoji'] = X['emojis'].apply(len)
+    # X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
 
     X['%_capital'] = X['n_capital'] / X['n_char']
     X['%_number'] = X['n_number'] / X['n_char']
-    X['%_emoji'] = X['n_emoji'] / X['n_char']
-    X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+    # X['%_emoji'] = X['n_emoji'] / X['n_char']
+    # X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+
+    X['log_char'] = X['n_char'].apply(np.log)
+
+    # X = pd.concat([X, extract_word_embedding(X['tokens'])], axis=1)
 
     X = pd.concat([X, extract_spammy_pattern_features(X['text'])], axis=1)
     return X
+
+def test():
+    train = pd.read_pickle('data/train.p')
+    validate = pd.read_pickle('data/validate.p')
+    test = pd.read_pickle('data/test.p')
+    train_model_fasttext(tokenize(train.text))
+
+if __name__ == '__main__':
+    test()
