@@ -160,7 +160,7 @@ def extract_features(X):
     X['log_char'] = X['n_char'].apply(np.log)
 
     X['has_phone_number'] = X['text'].str.contains('(\d[ \.-]?){9}')
-    X['has_bbm_pin'] = X['text'].str.contains('[A-F0-9]{8}', case=False)
+    X['has_bbm_pin'] = X['text'].str.contains('([0-9][A-F0-9]{7})|([A-F0-9][0-9][A-F0-9]{6})|([A-F0-9]{2}[0-9][A-F0-9]{5})|([A-F0-9]{3}[0-9][A-F0-9]{4})|([A-F0-9]{4}[0-9][A-F0-9]{3})|([A-F0-9]{5}[0-9][A-F0-9]{2})|([A-F0-9]{6}[0-9][A-F0-9])|([A-F0-9]{7}[0-9])', case=False)
 
     # X = pd.concat([X, extract_word_embedding(X['tokens'])], axis=1)
 
