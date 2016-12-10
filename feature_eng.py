@@ -92,11 +92,12 @@ def _get_w2v_mean(tokens, fpath_model='data/classification.model'):
     model = gensim.models.Word2Vec.load(fpath_model)
     return tokens.apply(lambda x: _get_mean(x, model))
 
-def extract_fasttext(texts):
+def extract_fasttext(texts, fpath_model='/tmp/model.bin'):
     # type: (pd.Series) -> pd.DataFrame
     """ Return a DataFrame for 100-dimension word embedding """
     tokens = tokenize(texts)
-    embedding = pd.DataFrame(_get_fasttext_mean(tokens).tolist(), columns=['embedding_{}'.format(i) for i in range(100)])
+    embedding = pd.DataFrame(_get_fasttext_mean(tokens, fpath_model=fpath_model).tolist(),
+                             columns=['embedding_{}'.format(i) for i in range(100)])
     embedding.index = texts.index
     return embedding
 
@@ -141,21 +142,25 @@ def extract_features(X):
     X['text'] = X['text'].str.strip()
     X['tokens'] = tokenize_2(X['text'])
     # X['text_clean'] = X['tokens'].apply(' '.join)
-    # X['emojis'] = extract_emojis(X['text'])
+    X['emojis'] = extract_emojis(X['text'])
 
     X['n_char'] = X['text'].str.len()
     X['n_token'] = X['tokens'].apply(len)
     X['n_capital'] = count_capitals(X['text'])
     X['n_number'] = count_numbers(X['text'])
-    # X['n_emoji'] = X['emojis'].apply(len)
-    # X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+    X['n_emoji'] = X['emojis'].apply(len)
+    X['n_unique_emoji'] = X['emojis'].apply(set).apply(len)
+    X['n_mention'] = X['text'].str.count('@')
 
     X['%_capital'] = X['n_capital'] / X['n_char']
     X['%_number'] = X['n_number'] / X['n_char']
-    # X['%_emoji'] = X['n_emoji'] / X['n_char']
-    # X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
+    X['%_emoji'] = X['n_emoji'] / X['n_char']
+    X['%_unique_emoji'] = X['n_unique_emoji'] / X['n_char']
 
     X['log_char'] = X['n_char'].apply(np.log)
+
+    X['has_phone_number'] = X['text'].str.contains('(\d[ \.-]?){9}')
+    X['has_bbm_pin'] = X['text'].str.contains('([0-9][A-F0-9]{7})|([A-F0-9][0-9][A-F0-9]{6})|([A-F0-9]{2}[0-9][A-F0-9]{5})|([A-F0-9]{3}[0-9][A-F0-9]{4})|([A-F0-9]{4}[0-9][A-F0-9]{3})|([A-F0-9]{5}[0-9][A-F0-9]{2})|([A-F0-9]{6}[0-9][A-F0-9])|([A-F0-9]{7}[0-9])', case=False)
 
     # X = pd.concat([X, extract_word_embedding(X['tokens'])], axis=1)
 
